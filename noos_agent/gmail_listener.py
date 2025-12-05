@@ -3,8 +3,10 @@ import imaplib
 import email
 import os
 
+from .resonance_engine import detect_resonance, store_resonance_event
+
+
 def connect_to_gmail():
-    """Conecta al servidor IMAP de Gmail usando App Password."""
     gmail_user = os.getenv("GMAIL_USER")
     gmail_pass = os.getenv("GMAIL_APP_PASSWORD")
 
@@ -17,7 +19,6 @@ def connect_to_gmail():
 
 
 def fetch_unread_emails():
-    """Obtiene correos no leídos y devuelve lista de diccionarios."""
     mail = connect_to_gmail()
     mail.select("inbox")
 
@@ -31,10 +32,9 @@ def fetch_unread_emails():
         raw_email = msg_data[0][1]
         msg = email.message_from_bytes(raw_email)
 
-        subject = msg["subject"]
-        sender = msg["from"]
+        subject = msg["subject"] or ""
+        sender = msg["from"] or ""
 
-        # Obtener el cuerpo (solo texto plano por ahora)
         body = ""
         if msg.is_multipart():
             for part in msg.walk():
@@ -42,30 +42,49 @@ def fetch_unread_emails():
                     body = part.get_payload(decode=True).decode(errors="ignore")
                     break
         else:
-            body = msg.get_payload(decode=True).decode(errors="ignore")
+            payload = msg.get_payload(decode=True)
+            if payload:
+                body = payload.decode(errors="ignore")
 
-        emails.append({
+        email_obj = {
             "id": eid.decode(),
             "subject": subject,
             "sender": sender,
             "body": body,
-        })
+        }
+        emails.append(email_obj)
 
     mail.logout()
     return emails
 
 
+def process_emails():
+    emails = fetch_unread_emails()
+
+    if not emails:
+        print("No hay correos no leídos.")
+        return
+
+    print(f"Se encontraron {len(emails)} correos no leídos.\n")
+
+    for email_data in emails:
+        print("-----")
+        print("De:", email_data["sender"])
+        print("Asunto:", email_data["subject"])
+
+        # Detección simbólica
+        resonance = detect_resonance(email_data["subject"], email_data["body"])
+
+        if resonance["resonance"]:
+            print("✨ RESONANCIA DETECTADA:", resonance["trigger_phrases"])
+            event = store_resonance_event(email_data, resonance)
+            print("📝 Memoria generada:", event)
+        else:
+            print("Sin resonancia.")
+
+
 if __name__ == "__main__":
     try:
-        unread = fetch_unread_emails()
-        if not unread:
-            print("No hay correos no leídos.")
-        else:
-            print(f"Se encontraron {len(unread)} correos no leídos:")
-            for mail in unread:
-                print("-----")
-                print("De:", mail["sender"])
-                print("Asunto:", mail["subject"])
-                print("Cuerpo:", mail["body"][:200], "...")
+        process_emails()
     except Exception as e:
         print("Error:", e)
