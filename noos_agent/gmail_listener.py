@@ -36,7 +36,6 @@ def fetch_unread_emails():
         subject = msg["subject"] or ""
         sender = msg["from"] or ""
 
-        # Obtener cuerpo del mensaje
         body = ""
         if msg.is_multipart():
             for part in msg.walk():
@@ -75,7 +74,10 @@ def process_emails():
         print("De:", email_data["sender"])
         print("Asunto:", email_data["subject"])
 
-        resonance = detect_resonance(email_data["subject"], email_data["body"])
+        resonance = detect_resonance(
+            email_data["subject"],
+            email_data["body"]
+        )
 
         if resonance["resonance"]:
             print("✨ RESONANCIA DETECTADA:", resonance["trigger_phrases"])
