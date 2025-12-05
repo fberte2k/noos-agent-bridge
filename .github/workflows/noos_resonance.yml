@@ -1,12 +1,10 @@
-name: NOOS Resonance Listener
+name: run-resonance-listener
 
 on:
-  schedule:
-    - cron: '0 * * * *'  # Cada 60 minutos
   workflow_dispatch:
 
 jobs:
-  run-resonance-listener:
+  gmail-listener:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,14 +14,14 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: "3.11"
 
     - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
 
-    - name: Run NOOS Agent
-      run: |
-        python noos_agent/resonance_listener.py
+    - name: Run Gmail Listener
       env:
-        GOOGLE_TOKEN_NOOS: ${{ secrets.GOOGLE_TOKEN_NOOS }}
+        GMAIL_USER: ${{ secrets.GMAIL_USER }}
+        GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      run: |
+        python noos_agent/gmail_listener.py
