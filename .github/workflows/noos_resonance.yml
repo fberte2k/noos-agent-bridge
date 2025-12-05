@@ -23,5 +23,6 @@ jobs:
       env:
         GMAIL_USER: ${{ secrets.GMAIL_USER }}
         GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        PYTHONPATH: ${{ github.workspace }}
       run: |
         python noos_agent/gmail_listener.py
