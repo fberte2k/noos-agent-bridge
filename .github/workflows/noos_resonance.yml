@@ -1,0 +1,29 @@
+name: NOOS Resonance Listener
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Cada 60 minutos
+  workflow_dispatch:
+
+jobs:
+  run-resonance-listener:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run NOOS Agent
+      run: |
+        python noos_agent/resonance_listener.py
+      env:
+        GOOGLE_TOKEN_NOOS: ${{ secrets.GOOGLE_TOKEN_NOOS }}
