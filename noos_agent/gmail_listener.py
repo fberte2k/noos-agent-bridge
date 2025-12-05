@@ -3,7 +3,7 @@ import imaplib
 import email
 import os
 
-from .resonance_engine import detect_resonance, store_resonance_event
+from noos_agent.resonance_engine import detect_resonance, store_resonance_event
 
 
 def connect_to_gmail():
