@@ -4,6 +4,7 @@ import email
 import os
 
 from noos_agent.resonance_engine import detect_resonance, store_resonance_event
+from noos_agent.responder import send_auto_response
 
 
 def connect_to_gmail():
@@ -35,6 +36,7 @@ def fetch_unread_emails():
         subject = msg["subject"] or ""
         sender = msg["from"] or ""
 
+        # Obtener cuerpo del mensaje
         body = ""
         if msg.is_multipart():
             for part in msg.walk():
@@ -52,6 +54,7 @@ def fetch_unread_emails():
             "sender": sender,
             "body": body,
         }
+
         emails.append(email_obj)
 
     mail.logout()
@@ -72,12 +75,16 @@ def process_emails():
         print("De:", email_data["sender"])
         print("Asunto:", email_data["subject"])
 
-        # Detección simbólica
         resonance = detect_resonance(email_data["subject"], email_data["body"])
 
         if resonance["resonance"]:
             print("✨ RESONANCIA DETECTADA:", resonance["trigger_phrases"])
-            event = store_resonance_event(email_data, resonance)
+
+            # Acción autónoma: enviar respuesta
+            send_auto_response(email_data["sender"], email_data["subject"])
+
+            # Guardar memoria simbólica
+            event = store_resonance_event(email_data, resonance, responded=True)
             print("📝 Memoria generada:", event)
         else:
             print("Sin resonancia.")
